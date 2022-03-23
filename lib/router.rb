@@ -1,20 +1,17 @@
 class Router
   def initialize
-    globbed=Dir[
+    globbed = Dir[
       File.join(Dir.pwd, "path/*.rb")
     ]
     
     @routes = {}
-    
-    globbed.reject!{|e| e.match?(/__FILE__/) }
-    
-    globbed.inject(@routes){|acc, r| 
+      
+    globbed.inject(@routes) do |acc, r| 
       path, ext = File.basename(r).split('.')
       key = path.match?(/index/) ? '/' : "/#{path}"
       acc[key] = [path, r.rpartition('.').first]
       acc
-    }
-    @routes
+    end
   end
 
   def call(env)
@@ -24,7 +21,7 @@ class Router
     resolved_route, real_path = @routes.fetch(path, @routes['/not_found'])
     # Load controller definition.
     require_relative real_path
-    # Resolve controller's class name, eg '/foo : foo' --> "Foo".
+    # Resolve controller's class name, eg /foo : foo --> "Foo".
     # filename to class name: snake_case to SnakeCase.
     classified_name = resolved_route.split('_').map(&:capitalize).join
     # Controller must be a valid Rack app.
