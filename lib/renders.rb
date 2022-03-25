@@ -23,7 +23,7 @@ module Renders
     # Here the binding is a special Ruby method, basically it represents
     # the context of current object self, and in this case, the Franky instance.
     #
-    ERB.new( File.read(f) ).result( binding )
+    ERB.new( File.read(f) ).result(binding)
   end
 end
 

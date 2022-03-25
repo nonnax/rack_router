@@ -1,4 +1,4 @@
-class Index < R
+class Index < R '/'
   def get(env)
     markup = 'Hi {{name}}!'
     data = {:name => 'Nald'}
