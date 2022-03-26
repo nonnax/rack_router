@@ -1,5 +1,5 @@
 class Foo < R '/foo'
-  def get(env)
+  def self.get(env)
     p self.class
     erb :index
   end

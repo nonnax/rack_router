@@ -1,7 +1,5 @@
-require 'mustache'
-
 class Default < R '/def'
-  def get(env)
+  def self.get(env)
     @env=env
     markup = 'Hi {{name}}!'
     @data = {:name => 'Nonnax'}

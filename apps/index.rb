@@ -1,5 +1,5 @@
 class Index < R '/'
-  def get(env)
+  def self.get(env)
     markup = 'Hi {{name}}!'
     data = {:name => 'Nald'}
     @html = Mustache.render markup, data
