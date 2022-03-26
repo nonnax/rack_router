@@ -3,41 +3,36 @@ require_relative 'renders'
 APPS_PATH=File.expand_path("../apps", __dir__)
 
 class Object #:nodoc:
-  def meta_def(m,&b) #:nodoc:
-    (class<<self;self end).send(:define_method,m,&b)
-  end
+  def meta_def(m,&b) = (class<<self;self end).send(:define_method,m,&b)
 end
 
 class String
-  def snakecase
-     gsub(/(?<=[a-z])([A-Z])/){|m| '_'+m.downcase}.downcase
-  end
-  def camelcase
-    split('_').map(&:capitalize).join
-  end
+  def snakecase = gsub(/(?<=[a-z])([A-Z])/){|m| '_'+m.downcase}.downcase
+  def camelcase =  split('_').map(&:capitalize).join
 end
 
 class Router
-  
   @routes = Hash.new([])
   @apps = []
   
   class << self
-    def apps() = @apps
-    def routes() = @routes
-    def status() = @status||=200
+    def apps = @apps
+    def status = @status||=200
     def status=(code)
       @status=code
     end
   end
-  
+
+  def apps = self.class.apps
+  def status = self.class.status
+    
   def initialize
       Dir[
         File.expand_path(
-          File.join(APPS_PATH, "*.rb"), 
+          File.join( APPS_PATH, "*.rb" ), 
           __dir__
         )
-      ].each{ |a| require a }
+      ].each{ |f| require f } # fires R controller creation
   end
 
   def _call(env)
@@ -56,19 +51,15 @@ class Router
 end
 
 def R(url)
-    # controller class and route
+    # handles controller creation and router collection
     Class.new {
       def self.call(env)
         m = env['REQUEST_METHOD'].downcase.to_sym
-        @body = self.send(m, env)
-        [Router.status, {'Content-Type' => 'text/html'}, ["#{@body}"]]
+        body = self.send(m, env)
+        [ Router.status, {'Content-Type' => 'text/html; charset=UTF-8'}, ["#{body}"] ]
       end
       meta_def(:path_pattern){/^#{url}$/}
       meta_def(:path){ url }
-      meta_def(:inherited){|x| 
-        norm_name = x.to_s.snakecase
-        Router.routes[url] = [x, File.join(APPS_PATH, norm_name)] 
-        Router.apps << [x, File.join(APPS_PATH, norm_name)] 
-      }
+      meta_def(:inherited){|x| Router.apps << [x, File.join(APPS_PATH, x.to_s.snakecase)] }
     }
 end
