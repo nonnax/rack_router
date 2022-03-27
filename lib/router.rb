@@ -11,7 +11,24 @@ class String
   def camelcase =  split('_').map(&:capitalize).join
 end
 
+module Serves
+  extend self
+  HEADERS_DEFAULT='Content-type: text/html; charset=UTF-8'
+  @@req=nil
+  @@res=Rack::Response.new
+  @@status=200
+  def req = @@req
+  def req(x) = @@req=x
+  def res = @@res
+  def res(x) = @@res=x
+  def status = @@status
+  def status(x) = @@res.status = @@status =x
+  def headers = @@res.headers || HEADERS_DEFAULT
+  def headers(x) = @@res.headers = x
+end
+
 class Router
+  extend Serves
   @routes = Hash.new([])
   @apps = []
   
@@ -23,8 +40,8 @@ class Router
     end
   end
 
-  def apps = self.class.apps
-  def status = self.class.status
+  # def apps = self.class.apps
+  # def status = self.class.status
     
   def initialize
       Dir[
@@ -37,14 +54,14 @@ class Router
 
   def _call(env)
     @env = env
-    @req = Rack::Request.new @env
-    res = Rack::Response.new
-    self.class.status = res.status
-    
-    controller,_ = self.class.apps.detect{|c, _| c.path_pattern.match @req.path_info }
+    self.req = Rack::Request.new @env
+    p 'self.res = Rack::Response.new'
+    p self.res = Rack::Response.new
+
+    controller,_ = self.class.apps.detect{|c, _| c.path_pattern.match( req.path_info) }
     
     return controller.call(env) if controller   
-    (self.class.status = 404 ) && NotFound.call(env)   
+    self.status(404) && NotFound.call(env)   
   end
 
   def call(env) = dup._call(env)
@@ -52,14 +69,16 @@ end
 
 def R(url)
     # handles controller creation and router collection
+    apps = Router.apps
     Class.new {
+      extend Serves
       def self.call(env)
         m = env['REQUEST_METHOD'].downcase.to_sym
         body = self.send(m, env)
-        [ Router.status, {'Content-Type' => 'text/html; charset=UTF-8'}, ["#{body}"] ]
+        [ self.status, self.headers, ["#{body}"] ]
       end
       meta_def(:path_pattern){/^#{url}$/}
       meta_def(:path){ url }
-      meta_def(:inherited){|x| Router.apps << [x, File.join(APPS_PATH, x.to_s.snakecase)] }
+      meta_def(:inherited){|x| apps << x }
     }
 end
