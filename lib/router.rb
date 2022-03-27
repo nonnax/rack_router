@@ -39,6 +39,8 @@ class Router
   end
 
   def _call(env)
+    @res=Rack::Response.new
+    
     controller,_ = self.class.apps.detect{|c, _| c.path_pattern.match( env['PATH_INFO'] ) }
     return controller.call(env) if controller
     self.class.status(404) && NotFound.call(env)
