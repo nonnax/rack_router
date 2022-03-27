@@ -50,12 +50,11 @@ end
 
 def R(url)
     # handles controller creation and router collection
-    path_pattern, extra_params=compile_path_params(url)
-    apps = Router.apps
+    compile_path_params(url) => [path_pattern, extra_params]
     Class.new {
       meta_def(:path){ url }
       meta_def(:path_pattern){ %r{^#{path_pattern}/?$} }
       meta_def(:extra_params){ extra_params }
-      meta_def(:inherited){|x| apps << x }
+      meta_def(:inherited){|x| Router.apps << x }
     }
 end
