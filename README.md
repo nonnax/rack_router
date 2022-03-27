@@ -18,6 +18,7 @@ views directory path: '../views/'
 
 sample code:
 
+```ruby
   class Controller < R '/url'
 
     def self.get(params)
@@ -32,3 +33,4 @@ sample code:
 
   end
 
+```
